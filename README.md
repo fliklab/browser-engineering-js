@@ -49,10 +49,17 @@ vercel --prod
 
 For detailed documentation, see [src/README.md](src/README.md)
 
-## Note
+## 📝 Implementation Notes
 
-This project is created for educational purposes of myself. This implementation
-does not guarantee to be a direct translation of the original Python code.
+This project is created for educational purposes. While following the book's algorithms closely, some adaptations were made for the JavaScript/p5.js environment:
+
+### Platform Differences
+
+**Font Handling**: Unlike Python's `tkinter.font.Font` which is self-contained, p5.js requires a canvas instance for text measurement. We use a global p5 instance pattern to ensure fonts can access `textWidth()` and other p5 methods when needed.
+
+**Default Styles**: The default stylesheet includes basic styles for common elements (`<a>`, `<b>`, `<i>`, etc.) to ensure reasonable rendering even when external stylesheets fail to load.
+
+This implementation follows the book's core concepts while adapting to JavaScript's ecosystem and browser environment.
 
 ## License
 

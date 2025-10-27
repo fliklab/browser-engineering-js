@@ -162,10 +162,8 @@ const sketch = (p) => {
     canvas = new P5Canvas(p, WIDTH, HEIGHT);
     logger.render("P5Canvas wrapper initialized");
 
-    // 모든 폰트에 p5 인스턴스 설정
-    Object.values(FONTS).forEach((font) => {
-      font.setP5Instance(p);
-    });
+    // 전역 p5 인스턴스 설정 (모든 폰트가 자동으로 사용)
+    setGlobalP5Instance(p);
     logger.info("Fonts initialized");
 
     // book/chrome.md: Lab 7 브라우저 생성 (멀티탭)

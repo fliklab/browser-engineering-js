@@ -1,7 +1,7 @@
 /**
  * Web Browser Engineering - 통합 JavaScript 구현
  * Lab 1-7의 모든 기능을 포함한 단일 파일
- * 
+ *
  * book/index.md: Chapters 1-7 참조
  * - http.md: URL 파싱, HTTP 요청
  * - graphics.md: 화면 그리기
@@ -66,28 +66,28 @@ class URL {
       if (!schemeMatch) {
         throw new Error("Invalid URL format");
       }
-      
+
       this.scheme = schemeMatch[1];
       let remaining = schemeMatch[2];
-      
+
       if (this.scheme !== "http" && this.scheme !== "https") {
         throw new Error("Unsupported scheme: " + this.scheme);
       }
-      
+
       if (remaining.indexOf("/") === -1) {
         remaining = remaining + "/";
       }
-      
+
       const slashIndex = remaining.indexOf("/");
       const hostPart = remaining.substring(0, slashIndex);
       this.path = remaining.substring(slashIndex);
-      
+
       if (this.scheme === "http") {
         this.port = 80;
       } else if (this.scheme === "https") {
         this.port = 443;
       }
-      
+
       if (hostPart.indexOf(":") !== -1) {
         const parts = hostPart.split(":");
         this.host = parts[0];
@@ -95,12 +95,11 @@ class URL {
       } else {
         this.host = hostPart;
       }
-      
     } catch (e) {
       console.error("Malformed URL found, falling back to the WBE home page.");
       console.error("  URL was: " + url);
       console.error("  Error: " + e.message);
-      
+
       const defaultUrl = new URL("https://browser.engineering");
       this.scheme = defaultUrl.scheme;
       this.host = defaultUrl.host;
@@ -130,13 +129,13 @@ class URL {
 
   toString() {
     let portPart = "";
-    
+
     if (this.scheme === "https" && this.port !== 443) {
       portPart = ":" + this.port;
     } else if (this.scheme === "http" && this.port !== 80) {
       portPart = ":" + this.port;
     }
-    
+
     return `${this.scheme}://${this.host}${portPart}${this.path}`;
   }
 
@@ -144,17 +143,17 @@ class URL {
     if (url.indexOf("://") !== -1) {
       return new URL(url);
     }
-    
+
     if (url.startsWith("//")) {
       return new URL(this.scheme + ":" + url);
     }
-    
+
     if (url.startsWith("/")) {
       return new URL(`${this.scheme}://${this.host}:${this.port}${url}`);
     }
-    
+
     let dir = this.path.substring(0, this.path.lastIndexOf("/"));
-    
+
     while (url.startsWith("../")) {
       url = url.substring(3);
       const lastSlash = dir.lastIndexOf("/");
@@ -162,7 +161,7 @@ class URL {
         dir = dir.substring(0, lastSlash);
       }
     }
-    
+
     const newPath = dir + "/" + url;
     return new URL(`${this.scheme}://${this.host}:${this.port}${newPath}`);
   }
@@ -173,18 +172,27 @@ class URL {
 // ============================================================================
 
 const FONTS = {};
+let GLOBAL_P5_INSTANCE = null;
+
+function setGlobalP5Instance(p) {
+  GLOBAL_P5_INSTANCE = p;
+  // 기존 폰트들에도 p5 인스턴스 설정
+  Object.values(FONTS).forEach((font) => {
+    font.setP5Instance(p);
+  });
+}
 
 class Font {
   constructor(size = 12, weight = "normal", slant = "roman") {
     this.size = size;
     this.weight = weight;
     this.slant = slant;
-    this.p = null;
+    this.p = GLOBAL_P5_INSTANCE;
   }
 
   measure(text) {
     if (!this.p) return text.length * this.size * 0.6;
-    
+
     this.p.push();
     this.p.textSize(this.size);
     this.p.textStyle(
@@ -196,7 +204,7 @@ class Font {
     );
     const width = this.p.textWidth(text);
     this.p.pop();
-    
+
     return width;
   }
 
@@ -204,7 +212,7 @@ class Font {
     const ascent = this.size * 0.8;
     const descent = this.size * 0.2;
     const linespace = this.size * 1.25;
-    
+
     const metricsObj = {
       ascent: ascent,
       descent: descent,
@@ -325,9 +333,9 @@ class HTMLParser {
 
   add_text(text) {
     if (text.trim().length === 0) return;
-    
+
     this.implicit_tags(null);
-    
+
     const parent = this.unfinished[this.unfinished.length - 1];
     const node = new Text(text, parent);
     parent.children.push(node);
@@ -351,11 +359,11 @@ class HTMLParser {
       const parent = this.unfinished[this.unfinished.length - 1];
       const node = new Element(tagName, attributes, parent);
       parent.children.push(node);
-      
     } else {
-      const parent = this.unfinished.length > 0 
-        ? this.unfinished[this.unfinished.length - 1] 
-        : null;
+      const parent =
+        this.unfinished.length > 0
+          ? this.unfinished[this.unfinished.length - 1]
+          : null;
       const node = new Element(tagName, attributes, parent);
       this.unfinished.push(node);
     }
@@ -435,11 +443,11 @@ class CSSParser {
         break;
       }
     }
-    
+
     if (!(this.i > start)) {
       throw new Error("Parsing error: expected word");
     }
-    
+
     return this.s.substring(start, this.i);
   }
 
@@ -464,7 +472,7 @@ class CSSParser {
 
   body() {
     const pairs = {};
-    
+
     while (this.i < this.s.length && this.s[this.i] !== "}") {
       try {
         const [prop, val] = this.pair();
@@ -482,27 +490,27 @@ class CSSParser {
         }
       }
     }
-    
+
     return pairs;
   }
 
   selector() {
     let out = new TagSelector(this.word().toLowerCase());
     this.whitespace();
-    
+
     while (this.i < this.s.length && this.s[this.i] !== "{") {
       const tag = this.word();
       const descendant = new TagSelector(tag.toLowerCase());
       out = new DescendantSelector(out, descendant);
       this.whitespace();
     }
-    
+
     return out;
   }
 
   parse() {
     const rules = [];
-    
+
     while (this.i < this.s.length) {
       try {
         this.whitespace();
@@ -522,7 +530,7 @@ class CSSParser {
         }
       }
     }
-    
+
     return rules;
   }
 }
@@ -549,7 +557,7 @@ class DescendantSelector {
     if (!this.descendant.matches(node)) {
       return false;
     }
-    
+
     let current = node.parent;
     while (current) {
       if (this.ancestor.matches(current)) {
@@ -557,7 +565,7 @@ class DescendantSelector {
       }
       current = current.parent;
     }
-    
+
     return false;
   }
 }
@@ -572,24 +580,24 @@ function style(node, rules) {
       node.style[property] = default_value;
     }
   }
-  
+
   for (const [selector, body] of rules) {
     if (!selector.matches(node)) continue;
-    
+
     for (const [property, value] of Object.entries(body)) {
       node.style[property] = value;
     }
   }
-  
+
   if (node instanceof Element && node.attributes.style) {
     const pairs = new CSSParser(node.attributes.style).body();
     for (const [property, value] of Object.entries(pairs)) {
       node.style[property] = value;
     }
   }
-  
+
   if (node.style["font-size"].endsWith("%")) {
-    const parent_font_size = node.parent 
+    const parent_font_size = node.parent
       ? node.parent.style["font-size"]
       : INHERITED_PROPERTIES["font-size"];
     
@@ -738,17 +746,17 @@ class LineLayout {
   layout() {
     this.width = this.parent.width;
     this.x = this.parent.x;
-    
+
     if (this.previous) {
       this.y = this.previous.y + this.previous.height;
     } else {
       this.y = this.parent.y;
     }
-    
+
     for (const word of this.children) {
       word.layout();
     }
-    
+
     if (this.children.length === 0) {
       this.height = 0;
       return;
@@ -756,7 +764,7 @@ class LineLayout {
     
     const max_ascent = Math.max(...this.children.map(w => w.font.metrics("ascent")));
     const baseline = this.y + 1.25 * max_ascent;
-    
+
     for (const word of this.children) {
       word.y = baseline - word.font.metrics("ascent");
     }
@@ -790,16 +798,16 @@ class TextLayout {
     if (fontStyle === "normal") fontStyle = "roman";
     const size = parseInt(parseFloat(this.node.style["font-size"]) * 0.75);
     this.font = get_font(size, weight, fontStyle);
-    
+
     this.width = this.font.measure(this.word);
-    
+
     if (this.previous) {
       const space = this.previous.font.measure(" ");
       this.x = this.previous.x + space + this.previous.width;
     } else {
       this.x = this.parent.x;
     }
-    
+
     this.height = this.font.metrics("linespace");
   }
 
@@ -815,7 +823,7 @@ class BlockLayout {
     this.parent = parent;
     this.previous = previous;
     this.children = [];
-    
+
     this.x = null;
     this.y = null;
     this.width = null;
@@ -825,15 +833,15 @@ class BlockLayout {
   layout() {
     this.width = this.parent.width;
     this.x = this.parent.x;
-    
+
     if (this.previous) {
       this.y = this.previous.y + this.previous.height;
     } else {
       this.y = this.parent.y;
     }
-    
+
     const mode = this.layout_mode();
-    
+
     if (mode === "block") {
       let previous = null;
       for (const child of this.node.children) {
@@ -846,11 +854,11 @@ class BlockLayout {
       this.new_line();
       this.recurse(this.node);
     }
-    
+
     for (const child of this.children) {
       child.layout();
     }
-    
+
     this.height = this.children.reduce((sum, child) => sum + child.height, 0);
   }
 
@@ -866,11 +874,11 @@ class BlockLayout {
     if (hasBlockChild) {
       return "block";
     }
-    
+
     if (this.node.children.length > 0) {
       return "inline";
     }
-    
+
     return "block";
   }
 
@@ -905,13 +913,13 @@ class BlockLayout {
     if (fontStyle === "normal") fontStyle = "roman";
     const size = parseInt(parseFloat(node.style["font-size"]) * 0.75);
     const font = get_font(size, weight, fontStyle);
-    
+
     const w = font.measure(word);
-    
+
     if (this.cursor_x + w > this.width) {
       this.new_line();
     }
-    
+
     const line = this.children[this.children.length - 1];
     const previous_word = line.children.length > 0
       ? line.children[line.children.length - 1]
@@ -927,12 +935,12 @@ class BlockLayout {
 
   paint() {
     const cmds = [];
-    
+
     const bgcolor = this.node.style?.["background-color"] || "transparent";
     if (bgcolor !== "transparent") {
       cmds.push(new DrawRect(this.self_rect(), bgcolor));
     }
-    
+
     return cmds;
   }
 }
@@ -949,11 +957,11 @@ class DocumentLayout {
   layout() {
     const child = new BlockLayout(this.node, this, null);
     this.children.push(child);
-    
+
     this.width = WIDTH - 2 * HSTEP;
     this.x = HSTEP;
     this.y = VSTEP;
-    
+
     child.layout();
     this.height = child.height;
   }
@@ -965,7 +973,7 @@ class DocumentLayout {
 
 function paint_tree(layout_object, display_list) {
   display_list.push(...layout_object.paint());
-  
+
   for (const child of layout_object.children) {
     paint_tree(child, display_list);
   }
@@ -992,7 +1000,7 @@ class Tab {
     this.scroll = 0;
     this.url = url;
     this.history.push(url);
-    
+
     const body = await url.request();
     
     if (window.logger) window.logger.parse('Parsing HTML', `${body.length} bytes`);
@@ -1001,20 +1009,21 @@ class Tab {
     
     if (window.logger) window.logger.style('Parsing default stylesheet');
     let rules = new CSSParser(DEFAULT_STYLE_SHEET).parse();
-    
+
     const links = tree_to_list(this.nodes)
-      .filter(node => 
-        node instanceof Element &&
-        node.tag === "link" &&
-        node.attributes.rel === "stylesheet" &&
-        node.attributes.href
+      .filter(
+        (node) =>
+          node instanceof Element &&
+          node.tag === "link" &&
+          node.attributes.rel === "stylesheet" &&
+          node.attributes.href
       )
       .map(node => node.attributes.href);
     
     if (links.length > 0 && window.logger) {
       window.logger.style(`Found ${links.length} stylesheets`);
     }
-    
+
     for (const link of links) {
       try {
         if (window.logger) window.logger.style('Loading stylesheet', link);
@@ -1025,26 +1034,34 @@ class Tab {
         if (window.logger) window.logger.error('Stylesheet load failed', link);
       }
     }
-    
-    if (window.logger) window.logger.style('Sorting and applying CSS rules', `${rules.length} rules`);
+
+    if (window.logger)
+      window.logger.style(
+        "Sorting and applying CSS rules",
+        `${rules.length} rules`
+      );
     rules.sort((a, b) => cascade_priority(a) - cascade_priority(b));
     style(this.nodes, rules);
-    
-    if (window.logger) window.logger.layout('Building layout tree');
+
+    if (window.logger) window.logger.layout("Building layout tree");
     this.document = new DocumentLayout(this.nodes);
     this.document.layout();
-    if (window.logger) window.logger.layout('Layout completed');
-    
-    if (window.logger) window.logger.render('Building display list');
+    if (window.logger) window.logger.layout("Layout completed");
+
+    if (window.logger) window.logger.render("Building display list");
     this.display_list = [];
     paint_tree(this.document, this.display_list);
-    if (window.logger) window.logger.render('Display list completed', `${this.display_list.length} commands`);
-    
-    if (window.logger) window.logger.load('Tab load completed', url.toString());
+    if (window.logger)
+      window.logger.render(
+        "Display list completed",
+        `${this.display_list.length} commands`
+      );
+
+    if (window.logger) window.logger.load("Tab load completed", url.toString());
   }
 
   draw(canvas, offset) {
-    if (window.logger) window.logger.render('Drawing tab to canvas');
+    if (window.logger) window.logger.render("Drawing tab to canvas");
     for (const cmd of this.display_list) {
       if (cmd.top > this.scroll + this.tab_height) continue;
       if (cmd.bottom < this.scroll) continue;
@@ -1054,7 +1071,8 @@ class Tab {
 
   scrolldown() {
     const max_y = Math.max(
-      this.document.height + 2 * VSTEP - this.tab_height, 0
+      this.document.height + 2 * VSTEP - this.tab_height,
+      0
     );
     this.scroll = Math.min(this.scroll + SCROLL_STEP, max_y);
   }
@@ -1065,17 +1083,19 @@ class Tab {
 
   click(x, y) {
     y += this.scroll;
-    
-    const objs = tree_to_list(this.document)
-      .filter(obj => 
-        obj.x <= x && x < obj.x + obj.width &&
-        obj.y <= y && y < obj.y + obj.height
-      );
-    
+
+    const objs = tree_to_list(this.document).filter(
+      (obj) =>
+        obj.x <= x &&
+        x < obj.x + obj.width &&
+        obj.y <= y &&
+        y < obj.y + obj.height
+    );
+
     if (objs.length === 0) return;
-    
+
     let elt = objs[objs.length - 1].node;
-    
+
     while (elt) {
       if (elt instanceof Text) {
         elt = elt.parent;
@@ -1106,25 +1126,26 @@ class Chrome {
     this.browser = browser;
     this.focus = null;
     this.address_bar = "";
-    
+
     this.font = get_font(20, "normal", "roman");
     this.font_height = this.font.metrics("linespace");
-    
+
     this.padding = 5;
-    
+
     this.tabbar_top = 0;
     this.tabbar_bottom = this.font_height + 2 * this.padding;
-    
+
     const plus_width = this.font.measure("+") + 2 * this.padding;
     this.newtab_rect = new Rect(
-      this.padding, this.padding,
+      this.padding,
+      this.padding,
       this.padding + plus_width,
       this.padding + this.font_height
     );
-    
+
     this.urlbar_top = this.tabbar_bottom;
     this.urlbar_bottom = this.urlbar_top + this.font_height + 2 * this.padding;
-    
+
     const back_width = this.font.measure("<") + 2 * this.padding;
     this.back_rect = new Rect(
       this.padding,
@@ -1132,14 +1153,14 @@ class Chrome {
       this.padding + back_width,
       this.urlbar_bottom - this.padding
     );
-    
+
     this.address_rect = new Rect(
       this.back_rect.right + this.padding,
       this.urlbar_top + this.padding,
       WIDTH - this.padding,
       this.urlbar_bottom - this.padding
     );
-    
+
     this.bottom = this.urlbar_bottom;
   }
 
@@ -1147,97 +1168,125 @@ class Chrome {
     const tabs_start = this.newtab_rect.right + this.padding;
     const tab_width = this.font.measure(`Tab ${i}`) + 2 * this.padding;
     return new Rect(
-      tabs_start + tab_width * i, this.tabbar_top,
-      tabs_start + tab_width * (i + 1), this.tabbar_bottom
+      tabs_start + tab_width * i,
+      this.tabbar_top,
+      tabs_start + tab_width * (i + 1),
+      this.tabbar_bottom
     );
   }
 
   paint() {
     const cmds = [];
-    
-    cmds.push(new DrawRect(
-      new Rect(0, 0, WIDTH, this.bottom),
-      "white"
-    ));
-    
-    cmds.push(new DrawLine(
-      0, this.bottom, WIDTH, this.bottom, "black", 1
-    ));
-    
+
+    cmds.push(new DrawRect(new Rect(0, 0, WIDTH, this.bottom), "white"));
+
+    cmds.push(new DrawLine(0, this.bottom, WIDTH, this.bottom, "black", 1));
+
     cmds.push(new DrawOutline(this.newtab_rect, "black", 1));
-    cmds.push(new DrawText(
-      this.newtab_rect.left + this.padding,
-      this.newtab_rect.top,
-      "+", this.font, "black"
-    ));
-    
+    cmds.push(
+      new DrawText(
+        this.newtab_rect.left + this.padding,
+        this.newtab_rect.top,
+        "+",
+        this.font,
+        "black"
+      )
+    );
+
     for (let i = 0; i < this.browser.tabs.length; i++) {
       const tab = this.browser.tabs[i];
       const bounds = this.tab_rect(i);
-      
-      cmds.push(new DrawLine(
-        bounds.left, 0, bounds.left, bounds.bottom, "black", 1
-      ));
-      cmds.push(new DrawLine(
-        bounds.right, 0, bounds.right, bounds.bottom, "black", 1
-      ));
-      
-      cmds.push(new DrawText(
-        bounds.left + this.padding, bounds.top + this.padding,
-        `Tab ${i}`, this.font, "black"
-      ));
-      
+
+      cmds.push(
+        new DrawLine(bounds.left, 0, bounds.left, bounds.bottom, "black", 1)
+      );
+      cmds.push(
+        new DrawLine(bounds.right, 0, bounds.right, bounds.bottom, "black", 1)
+      );
+
+      cmds.push(
+        new DrawText(
+          bounds.left + this.padding,
+          bounds.top + this.padding,
+          `Tab ${i}`,
+          this.font,
+          "black"
+        )
+      );
+
       if (tab === this.browser.active_tab) {
-        cmds.push(new DrawLine(
-          0, bounds.bottom, bounds.left, bounds.bottom, "black", 1
-        ));
-        cmds.push(new DrawLine(
-          bounds.right, bounds.bottom, WIDTH, bounds.bottom, "black", 1
-        ));
+        cmds.push(
+          new DrawLine(0, bounds.bottom, bounds.left, bounds.bottom, "black", 1)
+        );
+        cmds.push(
+          new DrawLine(
+            bounds.right,
+            bounds.bottom,
+            WIDTH,
+            bounds.bottom,
+            "black",
+            1
+          )
+        );
       }
     }
-    
+
     cmds.push(new DrawOutline(this.back_rect, "black", 1));
-    cmds.push(new DrawText(
-      this.back_rect.left + this.padding,
-      this.back_rect.top,
-      "<", this.font, "black"
-    ));
-    
+    cmds.push(
+      new DrawText(
+        this.back_rect.left + this.padding,
+        this.back_rect.top,
+        "<",
+        this.font,
+        "black"
+      )
+    );
+
     cmds.push(new DrawOutline(this.address_rect, "black", 1));
-    
+
     if (this.focus === "address bar") {
-      cmds.push(new DrawText(
-        this.address_rect.left + this.padding,
-        this.address_rect.top,
-        this.address_bar, this.font, "black"
-      ));
-      
+      cmds.push(
+        new DrawText(
+          this.address_rect.left + this.padding,
+          this.address_rect.top,
+          this.address_bar,
+          this.font,
+          "black"
+        )
+      );
+
       const w = this.font.measure(this.address_bar);
-      cmds.push(new DrawLine(
-        this.address_rect.left + this.padding + w,
-        this.address_rect.top,
-        this.address_rect.left + this.padding + w,
-        this.address_rect.bottom,
-        "red", 1
-      ));
+      cmds.push(
+        new DrawLine(
+          this.address_rect.left + this.padding + w,
+          this.address_rect.top,
+          this.address_rect.left + this.padding + w,
+          this.address_rect.bottom,
+          "red",
+          1
+        )
+      );
     } else {
-      const url = this.browser.active_tab 
+      const url = this.browser.active_tab
         ? this.browser.active_tab.url.toString()
         : "";
-      cmds.push(new DrawText(
-        this.address_rect.left + this.padding,
-        this.address_rect.top,
-        url, this.font, "black"
-      ));
+      cmds.push(
+        new DrawText(
+          this.address_rect.left + this.padding,
+          this.address_rect.top,
+          url,
+          this.font,
+          "black"
+        )
+      );
     }
-    
+
     return cmds;
   }
 
   click(x, y) {
     this.focus = null;
-    
+
     if (this.newtab_rect.contains_point(x, y)) {
       this.browser.new_tab(new URL("https://browser.engineering/"));
     } else if (this.back_rect.contains_point(x, y)) {
@@ -1280,32 +1329,33 @@ class Browser {
     this.tabs = [];
     this.active_tab = null;
     this.chrome = new Chrome(this);
-    
+
     this.canvas.setBackground("white");
   }
 
   async new_tab(url) {
-    if (window.logger) window.logger.info('Creating new tab', url.toString());
+    if (window.logger) window.logger.info("Creating new tab", url.toString());
     const new_tab = new Tab(HEIGHT - this.chrome.bottom);
     await new_tab.load(url);
     this.active_tab = new_tab;
     this.tabs.push(new_tab);
-    if (window.logger) window.logger.info('New tab created', `Total tabs: ${this.tabs.length}`);
+    if (window.logger)
+      window.logger.info("New tab created", `Total tabs: ${this.tabs.length}`);
     this.draw();
   }
 
   draw() {
-    if (window.logger) window.logger.render('Browser redraw started');
+    if (window.logger) window.logger.render("Browser redraw started");
     this.canvas.delete("all");
-    
+
     if (this.active_tab) {
       this.active_tab.draw(this.canvas, this.chrome.bottom);
     }
-    
+
     for (const cmd of this.chrome.paint()) {
       cmd.execute(0, this.canvas);
     }
-    if (window.logger) window.logger.render('Browser redraw completed');
+    if (window.logger) window.logger.render("Browser redraw completed");
   }
 
   handle_click(x, y) {
@@ -1350,4 +1400,3 @@ class Browser {
     }
   }
 }
-
