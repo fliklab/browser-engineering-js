@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "buildCommand": "npm install",
+  "buildCommand": "echo 'Static site with Serverless Functions'",
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/",
@@ -13,7 +13,6 @@
   ],
   "functions": {
     "api/proxy.js": {
-      "runtime": "nodejs20.x",
       "maxDuration": 10,
       "memory": 1024
     }
