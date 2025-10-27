@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Browser Engineering - JavaScript</title>
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/log.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🌐 Web Browser Engineering with JavaScript</h1>
+      <div class="controls">
+        <div class="url-bar">
+          <label for="url-input">URL:</label>
+          <input
+            type="text"
+            id="url-input"
+            placeholder="https://browser.engineering"
+            value="https://browser.engineering"
+          />
+          <button id="load-btn">Load Page</button>
+          <button id="toggle-log-btn">Show Log</button>
+        </div>
+        <div id="proxy-status" style="margin-top: 10px; font-size: 12px">
+          <p style="color: #999">🔄 Checking proxy server...</p>
+        </div>
+      </div>
+
+      <div class="main-layout" id="main-layout">
+        <div class="canvas-container">
+          <div id="canvas-wrapper"></div>
+        </div>
+
+        <div class="log-panel hidden" id="log-panel">
+          <div class="log-header" id="log-header">
+            <div class="log-header-left">
+              <h3>Browser Logs</h3>
+            </div>
+            <div class="log-controls">
+              <button id="clear-logs" title="Clear all logs">Clear</button>
+              <label class="checkbox-label">
+                <input type="checkbox" id="auto-scroll" checked />
+                Auto
+              </label>
+              <button id="close-log-btn" title="Close log panel">×</button>
+            </div>
+          </div>
+          <div class="log-content" id="log-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- p5.js 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+
+    <!-- 브라우저 모듈 (통합) -->
+    <script src="../browser/request.js"></script>
+    <script src="../canvas/p5canvas.js"></script>
+    <script src="../browser/browser.js"></script>
+
+    <!-- 메인 애플리케이션 -->
+    <script src="script.js"></script>
+  </body>
+</html>
