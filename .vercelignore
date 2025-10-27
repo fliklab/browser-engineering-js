@@ -1,0 +1,22 @@
+# 개발 파일
+node_modules/
+labs/
+
+# Git 파일
+.git/
+.gitignore
+
+# 로컬 설정
+.env
+.env.local
+
+# 문서 (선택적)
+*.md
+!README.md
+
+# Express 프록시 서버 (Vercel에서는 Serverless Function 사용)
+src/proxy/
+
+# Lock 파일 (선택적)
+pnpm-lock.yaml
+

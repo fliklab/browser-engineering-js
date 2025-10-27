@@ -21,6 +21,8 @@ https://github.com/browserengineering/book
 
 ## 🚀 Quick Start
 
+### 로컬 개발
+
 ```bash
 # Install dependencies
 npm install
@@ -30,6 +32,18 @@ npm start
 ```
 
 Visit `http://localhost:8000` in your browser.
+
+### Vercel 배포
+
+```bash
+# Vercel CLI 설치
+npm i -g vercel
+
+# 배포
+vercel --prod
+```
+
+자세한 배포 가이드는 [DEPLOYMENT.md](DEPLOYMENT.md)를 참고하세요.
 
 ## 📖 Documentation
 

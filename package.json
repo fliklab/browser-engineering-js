@@ -2,13 +2,13 @@
   "name": "browser-engineering-js",
   "version": "1.0.0",
   "description": "JavaScript implementation of Web Browser Engineering book - A browser built with p5.js",
-  "main": "src/app/index.html",
+  "main": "src/index.html",
   "scripts": {
     "start": "npm run dev:all",
-    "dev:app": "http-server src/app -p 8000 -c-1 --cors -o",
+    "dev:app": "http-server . -p 8000 -c-1 --cors -o /src/index.html",
     "dev:proxy": "nodemon src/proxy/proxy-server.js",
     "dev:all": "concurrently \"npm run dev:app\" \"npm run dev:proxy\" --names \"APP,PROXY\" --prefix-colors \"blue,green\"",
-    "serve": "http-server src/app -p 8000 -c-1 --cors",
+    "serve": "http-server . -p 8000 -c-1 --cors",
     "proxy": "node src/proxy/proxy-server.js",
     "lint": "echo \"No linter configured yet\"",
     "test": "echo \"No tests configured yet\""
