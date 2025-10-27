@@ -42,10 +42,13 @@ const INHERITED_PROPERTIES = {
 
 // book/styles.md: 기본 스타일시트
 const DEFAULT_STYLE_SHEET = `
-pre {
-  font-family: monospace;
-  background-color: gray;
-}
+pre { background-color: gray; }
+
+a { color: blue; }
+i { font-style: italic; }
+b { font-weight: bold; }
+small { font-size: 90%; }
+big { font-size: 110%; }
 `;
 
 // ============================================================================
